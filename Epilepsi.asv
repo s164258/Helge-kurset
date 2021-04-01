@@ -1,0 +1,70 @@
+%Main code for detection of epileptic seizures using ECG signals:
+
+%Load signal.
+Data = TDMS_getStruct('Patient_2_1.tdms');
+%Removing first half of the data to make computation faster:
+ecg=Data.Untitled.EKG.data;
+ecg=ecg(length(ecg)/3:length(ecg)/2);
+%Resampling signal at 1 kHz if original sampling frequency differs from 1
+%kHz
+%Defining the ideal sampling frequency (the frequency that data must be
+%resampled at, if the original sampling frequency is not already equal to
+%the ideal frequency).
+fs=1000;
+
+%We need to obtain the sampling frequency of the signal (sf), and this could
+%potentially differ from device to device. Is this sampling frequency
+%automatically given along with the signal? If yes, then do the following:
+
+%This is not a general way of defining the sampling frequency, and hence
+%should be changed.
+sf=Data.Untitled.EKG.Props.ValsPerRec*4;  
+
+if sf~=fs
+    ecg=resample(ecg,double(fs),double(sf));
+end
+
+%If no, then how do we obtain the sampling frequency?
+
+%Using the wavelet method to detect position of the R waves:
+%setting gr=0 ensures that plots are not displayed.
+gr=0;
+[R_ind_post_processing,QRS_on_post_processing,QRS_off_post_processing,RR,ecg_out] = get_QRS( ecg,fs,gr );
+%Can't you just use the wavelet method to obtain the RR intervals (denoted
+%RR in the output) instead of the position of the R waves? (this can
+%possible be checked by using both approaches when having access to the
+%data, and investigating if the results are the same). Based on the wavelet
+%method code, it looks like just obtaining the RR intervals should work, as
+%this seems to be the HRV.
+
+
+%Calculating HRV
+%f_resample=8;
+%[HRV, qrs_loc, HRV_resample, qrs_loc_resample] = get_HRV(R_ind_post_processing, f_resample, fs);
+%Not quite sure if we should use the resampled HRV here, but we will assume
+%that in the following.
+
+
+
+%Implementing the modified CSI 100 method in order to identify epileptic
+%seizures.
+SD1mod=[];
+SD2mod=[];
+for i=1:length(RR)-100+1
+    SD1(i)=std(SD1mod);
+    SD2(i)=std(SD2mod);
+    for k=1:100
+        SD1mod(k)=((sqrt(2)/2)*(RR(k+i-1)-RR(k+1+i-1)));
+        SD2mod(k)=((sqrt(2)/2)*(RR(k+i-1)+RR(k+1+i-1)));
+    end
+end
+
+CSI100=(SD1.^2)./SD2;
+
+
+
+
+
+
+
+
