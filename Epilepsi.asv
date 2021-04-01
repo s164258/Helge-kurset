@@ -1,0 +1,18 @@
+
+%% Read ECG data
+%Indsæt den filsti, hvor data er opbevaret
+filepath = 'C:\Users\Bruger\OneDrive - Danmarks Tekniske Universitet\Personal portable health technologies\7 week projekt\ePatch data from Aarhus to Alabama\ePatch data from Aarhus to Alabama\Patients ePatch data';
+%data = TDMS_getStruct('C:\Users\Bruger\OneDrive - Danmarks Tekniske Universitet\Personal portable health technologies\7 week projekt\Patientdata\Patient_1_1.tdms');
+%params = {'GET_DATA_OPTION','getSubset','OBJECTS_GET',struct('groupsKeep',{{'Marker 0' 'Marker 1'}})};
+files = dir(fullfile(filepath, '**/*.tdms'));
+nfiles = length(files);
+Patientdata  = cell(nfiles,1);
+for i = 1 : nfiles
+   Output = TDMS_getStruct(fullfile(files(i).folder,files(i).name));
+   Patientdata{i} = Output.Untitled.EKG.data;
+end
+
+for i = 1 : nfiles
+   Output = TDMS_getStruct(fullfile(files(i).folder,files(i).name));
+   Patientdata{i} = Output.Untitled.EKG.data;
+end
